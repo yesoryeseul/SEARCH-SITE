@@ -2,9 +2,10 @@ import { SearchApi } from "apis/SearchApi";
 import useDebounce from "hooks/useDebounce";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { BiSearchAlt } from "react-icons/bi";
+import { BiSearchAlt, BiTimeFive } from "react-icons/bi";
 import useThrottle from "hooks/useThrottle";
 import { boxShadow, flexAlignJustifyCenter } from "styles/common";
+import { TiDeleteOutline } from "react-icons/ti";
 
 // SearchBar 검색창 컴포넌트
 const SearchBar = () => {
@@ -55,6 +56,16 @@ const SearchBar = () => {
 		return saveSearch ? JSON.parse(saveSearch) : null; // 값이 있다면 자바스크립트 값으로 변환, 없다면 null
 	};
 
+	// 최근 검색어 배열
+	const recentSearches = getRecentSearches() || [];
+
+	// 최근 검색어 삭제 로직
+	const onRemoveSearch = term => {
+		const recentSearches = getRecentSearches() || [];
+		const deletedSearches = recentSearches.filter(search => search !== term);
+		localStorage.setItem("recentSearches", JSON.stringify(deletedSearches));
+	};
+
 	return (
 		<S.Wrapper>
 			<S.Container>
@@ -73,6 +84,38 @@ const SearchBar = () => {
 				<S.SearchIcon onClick={onSearch}>
 					<BiSearchAlt size={30} />
 				</S.SearchIcon>
+				{isFocused && search.length === 0 && (
+					<S.HistoryContainer>
+						<S.HistoryTitle>최근 검색어</S.HistoryTitle>
+						{recentSearches.length === 0 ? (
+							<S.HistorySearchTerms>검색 결과가 없습니다.</S.HistorySearchTerms>
+						) : (
+							recentSearches.map((term, index) => (
+								<S.HistorySearchTerms
+									key={index}
+									// className={`${selectedIndex === index ? "selected" : ""}`}
+									onClick={() => {
+										saveSearchTerm(term);
+										setSearch("");
+										// setSelectedIndex(-1);
+									}}
+								>
+									<S.LeftSearch>
+										<BiTimeFive size={20} />
+										{term}
+									</S.LeftSearch>
+									<TiDeleteOutline
+										size={22}
+										onClick={e => {
+											e.stopPropagation(); // 이벤트 버블링 막기
+											onRemoveSearch(term);
+										}}
+									/>
+								</S.HistorySearchTerms>
+							))
+						)}
+					</S.HistoryContainer>
+				)}
 			</S.Container>
 		</S.Wrapper>
 	);
@@ -133,9 +176,58 @@ const SearchIcon = styled.div`
 	}
 `;
 
+const HistoryContainer = styled.div`
+	position: absolute;
+	top: 100%;
+	border-radius: 16px;
+	margin-top: 10px;
+	padding-bottom: 23px;
+	width: 100%;
+	background: #fff;
+	${boxShadow}
+`;
+
+const HistoryTitle = styled.h3`
+	font-size: 16px;
+	font-weight: bold;
+	padding: 30px 20px 20px;
+`;
+
+const HistorySearchTerms = styled.div`
+	display: flex;
+	flex-wrap: wrap;
+	padding: 10px 20px;
+	justify-content: space-between;
+	align-items: center;
+	&.selected {
+		background-color: #f1f1f1;
+	}
+	&:hover {
+		background-color: #f1f1f1;
+	}
+	& svg {
+		cursor: pointer;
+		color: #666;
+	}
+`;
+
+const LeftSearch = styled.div`
+	display: flex;
+	align-items: center;
+
+	& svg {
+		margin-right: 6px;
+		color: #666;
+	}
+`;
+
 const S = {
 	Wrapper,
 	Container,
 	Input,
 	SearchIcon,
+	HistoryContainer,
+	HistoryTitle,
+	HistorySearchTerms,
+	LeftSearch,
 };
