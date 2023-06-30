@@ -6,6 +6,7 @@ import { BiSearchAlt, BiTimeFive } from "react-icons/bi";
 import useThrottle from "hooks/useThrottle";
 import { boxShadow, flexAlignJustifyCenter } from "styles/common";
 import { TiDeleteOutline } from "react-icons/ti";
+import { AiOutlineSearch } from "react-icons/ai";
 
 // SearchBar 검색창 컴포넌트
 const SearchBar = () => {
@@ -116,6 +117,38 @@ const SearchBar = () => {
 						)}
 					</S.HistoryContainer>
 				)}
+				{isFocused && search.length > 0 && (
+					<S.HistoryContainer>
+						<S.SearchWord>
+							{" "}
+							<AiOutlineSearch size={16} />
+							{search}
+						</S.SearchWord>
+						<S.HistoryTitle>추천 검색어</S.HistoryTitle>
+						{recommendSearch.length === 0 ? (
+							<S.HistorySearchTerms>
+								추천 검색어가 없습니다.
+							</S.HistorySearchTerms>
+						) : (
+							recommendSearch.map((term, index) => {
+								return (
+									<S.HistorySearchTerms
+										key={index}
+										onClick={() => {
+											saveSearchTerm(term);
+											setSearch("");
+										}}
+									>
+										<S.LeftSearch>
+											<AiOutlineSearch size={20} />
+											{term}
+										</S.LeftSearch>
+									</S.HistorySearchTerms>
+								);
+							})
+						)}
+					</S.HistoryContainer>
+				)}
 			</S.Container>
 		</S.Wrapper>
 	);
@@ -221,6 +254,21 @@ const LeftSearch = styled.div`
 	}
 `;
 
+const SearchWord = styled.p`
+	display: flex;
+	align-items: center;
+	font-size: 16px;
+	font-weight: bold;
+	padding: 10px 14px;
+	margin-top: 20px;
+	background-color: #f1f1f1;
+	border-left: thick double #5c78f1;
+
+	& svg {
+		margin-right: 6px;
+	}
+`;
+
 const S = {
 	Wrapper,
 	Container,
@@ -230,4 +278,5 @@ const S = {
 	HistoryTitle,
 	HistorySearchTerms,
 	LeftSearch,
+	SearchWord,
 };
