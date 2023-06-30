@@ -1,14 +1,32 @@
+import axios from "axios";
+import RecentSearch from "components/recent-search";
 import RelationSearch from "components/relation-search";
-import { useState } from "react";
+import useDebounce from "components/relation-search/useDebounce";
+import { useEffect, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import styled from "styled-components";
 const SearchBar = () => {
 	const [search, setSearch] = useState("");
 	const [saveData, setSaveData] = useState([]);
 
+	// 연관검색
+	const [relativeData, setRelativeData] = useState([]);
+	const debounceVal = useDebounce(search);
+
 	const onChange = e => {
 		setSearch(e.target.value);
+		if (e.target.value == "") {
+			setRelativeData("");
+		}
 	};
+
+	useEffect(() => {
+		axios
+			.get(`http://localhost:3000/search?key=${debounceVal}`)
+			.then(res => setRelativeData(res.data))
+			.catch(() => console.log("err"));
+	}, [debounceVal]);
+	const newArray = Array.from(relativeData);
 
 	// 최근 검색 데이터 함수
 	function onClickSaveData() {
@@ -16,12 +34,10 @@ const SearchBar = () => {
 		const saveResult = [search, ...result.slice(0, 4)];
 		setSaveData(saveResult);
 	}
-
 	localStorage.setItem("saveData", JSON.stringify(saveData));
 	let arr = localStorage.getItem("saveData");
 	arr = JSON.parse(arr);
 	arr = [...arr];
-
 
 	return (
 		<Container>
@@ -37,12 +53,14 @@ const SearchBar = () => {
 					placeholder="검색어 입력"
 				></SearchInput>
 			</Wrapper>
-			{/* <div>
+			<div>
 				{arr.map(data => (
 					<RecentSearch data={data} />
 				))}
-			</div> */}
-			<RelationSearch search={search} />
+			</div>
+			{newArray.map(data => (
+				<RelationSearch data={data} />
+			))}
 		</Container>
 	);
 };

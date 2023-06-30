@@ -1,7 +1,7 @@
 const { useState, useEffect } = require("react");
 
 // parameter = (값, 딜레이)
-function useDebounce(value, delay = 500) {
+function useDebounce(value, delay = 200) {
 	// 받아온 만큼 딜레이를 해줘라
 	const [debounceVal, setDebounceVal] = useState(value);
 
@@ -18,3 +18,4 @@ function useDebounce(value, delay = 500) {
 }
 
 export default useDebounce;
+
