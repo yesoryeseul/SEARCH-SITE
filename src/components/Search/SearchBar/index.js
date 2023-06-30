@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { BiSearchAlt } from "react-icons/bi";
 import useThrottle from "hooks/useThrottle";
+import { boxShadow, flexAlignJustifyCenter } from "styles/common";
 
 // SearchBar 검색창 컴포넌트
 const SearchBar = () => {
@@ -13,6 +14,7 @@ const SearchBar = () => {
 	const throttledValue = useThrottle(search, 500); // 쓰로틀링 비교해보기!
 	const [isFocused, setIsFocused] = useState(false); // onFocus, onBlur시 History 컴포넌트 나타낼 수 있는 상태
 
+	// 추천 검색어 db 에서 받아오기
 	useEffect(() => {
 		const getDbDate = async key => {
 			try {
@@ -30,7 +32,27 @@ const SearchBar = () => {
 
 	// 검색 아이콘 클릭 시 로컬 스토리지에 검색어 값이 담기는 로직
 	const onSearch = () => {
-		console.log("검색 아이콘 클릭 시 로컬 스토리지에 검색어 값이 담기는 로직");
+		if (search === "") return; // 빈값은 저장 x
+		saveSearchTerm(search); // 입력한 값 로컬스토리지에 넣기
+		setSearch("");
+	};
+
+	// 로컬스토리지에 검색어 추가하기
+	const saveSearchTerm = term => {
+		const recentSearches = getRecentSearches() || [];
+		const updateSearch = [
+			term,
+			...recentSearches.filter(search => search !== term),
+		].slice(0, 5);
+		// 입력한 검색어 맨 앞에 추가, 중복 값의 경우 filter하여 보여주지 않고 맨 앞에 추가, slice하여 최대 5개 보여주기
+		localStorage.setItem("recentSearches", JSON.stringify(updateSearch));
+		// recentSearches라는 키 값으로 json 형태로 변환하여 값을 로컬 스토리지에 담기
+	};
+
+	// 로컬스토리지 값 가져오기
+	const getRecentSearches = () => {
+		const saveSearch = localStorage.getItem("recentSearches"); // recentSearches 키 값으로 저장된 최근 검색어 변수에 담기
+		return saveSearch ? JSON.parse(saveSearch) : null; // 값이 있다면 자바스크립트 값으로 변환, 없다면 null
 	};
 
 	return (
@@ -60,10 +82,8 @@ export default SearchBar;
 
 const Wrapper = styled.div`
 	position: relative;
-	display: flex;
+	${flexAlignJustifyCenter}
 	flex-direction: column;
-	align-items: center;
-	justify-content: center;
 	height: 100vh;
 	max-width: 600px;
 	margin: 0 auto;
@@ -85,7 +105,7 @@ const Input = styled.input`
 	padding: 20px 50px 18px 20px;
 	font-size: 18px;
 	font-weight: bold;
-	box-shadow: 0px 0px 18px 5px rgba(67, 100, 224, 0.1);
+	${boxShadow}
 
 	:focus {
 		outline: 2px solid #5c7ff1;
@@ -105,9 +125,7 @@ const SearchIcon = styled.div`
 		rgba(92, 110, 241, 1) 100%
 	);
 	border-radius: 30px;
-	display: flex;
-	justify-content: center;
-	align-items: center;
+	${flexAlignJustifyCenter}
 
 	& svg {
 		color: #fff;
