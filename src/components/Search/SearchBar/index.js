@@ -15,6 +15,8 @@ const SearchBar = () => {
 	const debounceValue = useDebounce(search); // 0.5초 디바운싱하여 검색어 담기
 	const throttledValue = useThrottle(search, 500); // 쓰로틀링 비교해보기!
 	const [isFocused, setIsFocused] = useState(false); // onFocus, onBlur시 History 컴포넌트 나타낼 수 있는 상태
+	const [selectedIndex, setSelectedIndex] = useState(-1);
+	// 키보드 이벤트나 선택 값 click 시 로컬스토리지에 최근 검색어 배열에 넣기 위한 상태, default는 선택되지 않은 상태(-1)
 
 	// 추천 검색어 db 에서 받아오기
 	useEffect(() => {
@@ -67,6 +69,48 @@ const SearchBar = () => {
 		localStorage.setItem("recentSearches", JSON.stringify(deletedSearches));
 	};
 
+	// 키보드 이벤트 기능
+	const handleKeyDown = e => {
+		// 1. enter 발생 시 -> 선택된 인덱스가 -1이 아니라면(선택 된 상태라면-인덱스를 가지고 있을 때) 최근 검색어 배열의 해당 인덱스의 값을 saveSearchTerm 함수를 이용해 로컬 스토리지에 넣는다
+		if (e.key === "Enter") {
+			if (selectedIndex !== -1) {
+				const selectedTerm =
+					selectedIndex >= recommendSearch.length // 선택된 인덱스가 추천 검색어 길이보다 같거나 크다면 최근 검색어
+						? recentSearches[selectedIndex - recommendSearch.length] // 선택된 인덱스를 최근 검색어 배열의 인덱스로 변환
+						: recommendSearch[selectedIndex]; // 그렇지 않으면(추천 검색어 UI일 때) 설정
+				saveSearchTerm(selectedTerm);
+			} else if (search !== "") {
+				// 선택한 상태가 아닌 일반 input에 값 입력 후 enter 이벤트시 검색 값 추가
+				saveSearchTerm(search);
+			}
+			setSearch("");
+			setSelectedIndex(-1);
+		} else if (e.key === "ArrowUp") {
+			e.preventDefault(); // 기본 동작인 스크롤 막기
+			// 키보드 위로 올릴 때 이전 인덱스로 가도록(prevIdx - 1) 하되, 만약 이전 인덱스가 0보다 작거나 같으면(제일 처음에 위치해 있다면) 최근검색어 배열길이의 -1(맨 마지막 위치)로 이동
+			setSelectedIndex(
+				prevIdx =>
+					prevIdx <= 0 // 선택된 값이 0번 보다 작은 인덱스일 때(즉 맨 앞에 있을 경우)
+						? recommendSearch.length > 0 // 추천 검색어가 있을 때
+							? recommendSearch.length - 1 // 추천 검색어 맨 뒤로 selected
+							: recentSearches.length - 1 // 최근 검색어일 때 최근 검색어 맨 뒤로 selected
+						: prevIdx - 1, // 그 외의 인덱스일 때는 -1씩 하여 이전 값 선택해줌
+			);
+		} else if (e.key === "ArrowDown") {
+			e.preventDefault(); // 기본 동작인 스크롤 막기
+			// 키보드를 아래로 내릴 때 다음 인덱스로 가도록(prevIdx + 1) 하되, 만약 인덱스가 최근 검색어 or 추천 검색어 배열 길이의 -1 (마지막에 위치) 이라면 인덱스를 0로 돌려주어 맨 앞으로 이동
+			setSelectedIndex(prevIdx =>
+				prevIdx ===
+				(recommendSearch.length > 0
+					? recommendSearch.length - 1
+					: recentSearches.length - 1)
+					? 0
+					: prevIdx + 1,
+			);
+			// 추천 검색어가 활성화되면 마지막 값일 때 인덱스를 0으로 돌려주고 아니라면 최근 검색어가 마지막일 때 0으로 돌려줌, 그 외는 index + 1씩 해줌
+		}
+	};
+
 	return (
 		<S.Wrapper>
 			<S.Container>
@@ -81,6 +125,7 @@ const SearchBar = () => {
 					}}
 					onChange={e => setSearch(e.target.value)}
 					placeholder="검색어를 입력하세요."
+					onKeyDown={handleKeyDown}
 				/>
 				<S.SearchIcon onClick={onSearch}>
 					<BiSearchAlt size={30} />
@@ -94,11 +139,11 @@ const SearchBar = () => {
 							recentSearches.map((term, index) => (
 								<S.HistorySearchTerms
 									key={index}
-									// className={`${selectedIndex === index ? "selected" : ""}`}
+									className={`${selectedIndex === index ? "selected" : ""}`}
 									onClick={() => {
 										saveSearchTerm(term);
 										setSearch("");
-										// setSelectedIndex(-1);
+										setSelectedIndex(-1);
 									}}
 								>
 									<S.LeftSearch>
@@ -131,17 +176,28 @@ const SearchBar = () => {
 							</S.HistorySearchTerms>
 						) : (
 							recommendSearch.map((term, index) => {
+								let highlightedTerm = term
+									.split(new RegExp(`(${search})`, "gi"))
+									.map((part, idx) => {
+										if (part === search) {
+											return <S.Highlight key={idx}>{part}</S.Highlight>;
+										} else {
+											return part;
+										}
+									});
 								return (
 									<S.HistorySearchTerms
 										key={index}
+										className={`${selectedIndex === index ? "selected" : ""}`}
 										onClick={() => {
 											saveSearchTerm(term);
 											setSearch("");
+											setSelectedIndex(-1);
 										}}
 									>
 										<S.LeftSearch>
 											<AiOutlineSearch size={20} />
-											{term}
+											{highlightedTerm}
 										</S.LeftSearch>
 									</S.HistorySearchTerms>
 								);
@@ -163,7 +219,7 @@ const Wrapper = styled.div`
 	height: 100vh;
 	max-width: 600px;
 	margin: 0 auto;
-	padding-bottom: 100px;
+	padding-bottom: 260px;
 `;
 
 const Container = styled.div`
@@ -269,6 +325,11 @@ const SearchWord = styled.p`
 	}
 `;
 
+const Highlight = styled.p`
+	font-weight: bold;
+	color: #5c78f1;
+`;
+
 const S = {
 	Wrapper,
 	Container,
@@ -279,4 +340,5 @@ const S = {
 	HistorySearchTerms,
 	LeftSearch,
 	SearchWord,
+	Highlight,
 };
