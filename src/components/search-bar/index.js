@@ -1,15 +1,15 @@
 import axios from "axios";
 import RecentSearch from "components/recent-search";
-import RelationSearch from "components/relation-search";
-import useDebounce from "components/relation-search/useDebounce";
+import useDebounce from "./debounce";
 import { useEffect, useState } from "react";
-import { AiOutlineSearch } from "react-icons/ai";
 import styled from "styled-components";
+import { AiOutlineSearch } from "react-icons/ai";
+
 const SearchBar = () => {
 	const [search, setSearch] = useState("");
 	const [saveData, setSaveData] = useState([]);
+	const [state, setState] = useState(false);
 
-	// 연관검색
 	const [relativeData, setRelativeData] = useState([]);
 	const debounceVal = useDebounce(search);
 
@@ -17,6 +17,14 @@ const SearchBar = () => {
 		setSearch(e.target.value);
 		if (e.target.value == "") {
 			setRelativeData("");
+			setState(false);
+		}
+		setState(false);
+	};
+
+	const onKeyPress = e => {
+		if (e.key === "Enter") {
+			onClickSaveData();
 		}
 	};
 
@@ -26,14 +34,14 @@ const SearchBar = () => {
 			.then(res => setRelativeData(res.data))
 			.catch(() => console.log("err"));
 	}, [debounceVal]);
-	const newArray = Array.from(relativeData);
+	const relativeMap = Array.from(relativeData);
 
-	// 최근 검색 데이터 함수
 	function onClickSaveData() {
 		const result = saveData.filter(v => v !== search);
 		const saveResult = [search, ...result.slice(0, 4)];
 		setSaveData(saveResult);
 	}
+
 	localStorage.setItem("saveData", JSON.stringify(saveData));
 	let arr = localStorage.getItem("saveData");
 	arr = JSON.parse(arr);
@@ -41,26 +49,32 @@ const SearchBar = () => {
 
 	return (
 		<Container>
-			<div>Search</div>
-			<Wrapper>
+			<Wrapper className="datalist-container">
 				<SearchIcon onClick={onClickSaveData}>
-					<AiOutlineSearch size={20} />
+					<AiOutlineSearch size={15} />
 				</SearchIcon>
 				<SearchInput
-					// onClick했을 때 최근 검색어가 나와야함 > state true, false로 해주기
-					// onClick={onChange}
+					type="text"
+					list="relativeList"
+					onClick={() => setState(true)}
 					onChange={onChange}
 					placeholder="검색어 입력"
-				></SearchInput>
+					onKeyPress={onKeyPress}
+				/>
 			</Wrapper>
-			<div>
-				{arr.map(data => (
-					<RecentSearch data={data} />
+
+			{state && (
+				<div>
+					{arr.map((data, idx) => (
+						<RecentSearch data={data} idx={idx} />
+					))}
+				</div>
+			)}
+			<datalist id="relativeList">
+				{relativeMap.map(val => (
+					<option value={val} className="datalist" />
 				))}
-			</div>
-			{newArray.map(data => (
-				<RelationSearch data={data} />
-			))}
+			</datalist>
 		</Container>
 	);
 };
@@ -81,8 +95,8 @@ const Wrapper = styled.div`
 const SearchIcon = styled.div`
 	position: relative;
 	height: 20px;
-	left: 560px;
-	top: 117px;
+	left: 430px;
+	top: 105px;
 	z-index: 100;
 	svg {
 		color: gray;
@@ -90,22 +104,8 @@ const SearchIcon = styled.div`
 `;
 
 const SearchInput = styled.input`
+	margin: 0px auto;
 	margin-top: 100px;
-	width: 600px;
-	height: 40px;
-	border: 6px solid;
-	padding-left: 10px;
-	:focus {
-		outline: none;
-		position: relative;
-	}
-	::placeholder {
-		color: gray;
-		position: relative;
-		top: 1px;
-	}
-	border-image: linear-gradient(to right, #ffcc99, #ffcdf3aa, #65d3ffaa);
-	border-image-slice: 1;
-	font-size: 15px;
-	position: relative;
+	width: 300px;
+	height: 25px;
 `;
