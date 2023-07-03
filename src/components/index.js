@@ -210,80 +210,9 @@ const SearchIcon = styled.div`
 	}
 `;
 
-const HistoryContainer = styled.div`
-	position: absolute;
-	top: 100%;
-	border-radius: 16px;
-	margin-top: 10px;
-	padding-bottom: 23px;
-	width: 100%;
-	background: #fff;
-	${boxShadow}
-`;
-
-const HistoryTitle = styled.h3`
-	font-size: 16px;
-	font-weight: bold;
-	padding: 30px 20px 20px;
-`;
-
-const HistorySearchTerms = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	padding: 10px 20px;
-	justify-content: space-between;
-	align-items: center;
-	&.selected {
-		background-color: #f1f1f1;
-	}
-	&:hover {
-		background-color: #f1f1f1;
-	}
-	& svg {
-		cursor: pointer;
-		color: #666;
-	}
-`;
-
-const LeftSearch = styled.div`
-	display: flex;
-	align-items: center;
-
-	& svg {
-		margin-right: 6px;
-		color: #666;
-	}
-`;
-
-const SearchWord = styled.p`
-	display: flex;
-	align-items: center;
-	font-size: 16px;
-	font-weight: bold;
-	padding: 10px 14px;
-	margin-top: 20px;
-	background-color: #f1f1f1;
-	border-left: thick double #5c78f1;
-
-	& svg {
-		margin-right: 6px;
-	}
-`;
-
-const Highlight = styled.p`
-	font-weight: bold;
-	color: #5c78f1;
-`;
-
 const S = {
 	Wrapper,
 	Container,
 	Input,
 	SearchIcon,
-	HistoryContainer,
-	HistoryTitle,
-	HistorySearchTerms,
-	LeftSearch,
-	SearchWord,
-	Highlight,
 };
