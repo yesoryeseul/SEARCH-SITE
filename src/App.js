@@ -1,7 +1,14 @@
+import SearchBar from "components";
 import "./App.css";
+import GlobalStyles from "styles/global";
 
 function App() {
-	return <div className="App"></div>;
+	return (
+		<>
+			<GlobalStyles />
+			<SearchBar />
+		</>
+	);
 }
 
 export default App;
