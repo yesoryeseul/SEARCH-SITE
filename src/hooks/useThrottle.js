@@ -16,6 +16,7 @@ const useThrottle = (value, delay = 500) => {
 		if (elapsedTime >= delay) {
 			setThrottledValue(value);
 			lastExecutedTimeRef.current = currentTime;
+			console.log("쓰로틀링 확인: ", value);
 		} else {
 			timeoutRef.current = setTimeout(() => {
 				setThrottledValue(value);

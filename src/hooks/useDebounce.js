@@ -12,7 +12,7 @@ const useDebounce = (value, delay = 500) => {
 
 	useEffect(() => {
 		const handler = setTimeout(() => {
-			console.log("디바운싱 잘되는지 확인:", value); // e.target.value 딜레이 잘 되는지 디버깅
+			console.log("디바운싱 확인:", value); // e.target.value 딜레이 잘 되는지 디버깅
 			setDebounceVal(value);
 		}, delay);
 

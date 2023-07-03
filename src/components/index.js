@@ -3,7 +3,6 @@ import useDebounce from "hooks/useDebounce";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { BiSearchAlt } from "react-icons/bi";
-import useThrottle from "hooks/useThrottle";
 import { boxShadow, flexAlignJustifyCenter } from "styles/common";
 import RecentSearch from "./Search/RecentSearch";
 import RecommendSearch from "./Search/RecommendSearch";
@@ -13,7 +12,7 @@ const SearchBar = () => {
 	const [search, setSearch] = useState(""); // input값(검색어)
 	const [recommendSearch, setRecommendSearch] = useState([]); // 추천 검색어 담을 배열
 	const debounceValue = useDebounce(search); // 0.5초 디바운싱하여 검색어 담기
-	const throttledValue = useThrottle(search); // 쓰로틀링 비교해보기!
+	// const throttledValue = useThrottle(search); // 쓰로틀링 비교해보기!
 	const [isFocused, setIsFocused] = useState(false); // onFocus, onBlur시 History 컴포넌트 나타낼 수 있는 상태
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	// 키보드 이벤트나 선택 값 click 시 로컬스토리지에 최근 검색어 배열에 넣기 위한 상태, default는 선택되지 않은 상태(-1)
@@ -32,7 +31,7 @@ const SearchBar = () => {
 		};
 		setRecommendSearch([]); // 추천 검색어 초기화하는 로직 -> 검색어 입력 시 이전 추천 검색어 기록 뜨지 않게함
 		if (debounceValue) getDbData(debounceValue);
-	}, [debounceValue, search]);
+	}, [debounceValue]);
 
 	// 검색 아이콘 클릭 시 로컬 스토리지에 검색어 값이 담기는 로직
 	const onSearch = () => {
