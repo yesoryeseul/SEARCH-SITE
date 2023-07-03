@@ -2,25 +2,25 @@ import { SearchApi } from "apis/SearchApi";
 import useDebounce from "hooks/useDebounce";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import { BiSearchAlt, BiTimeFive } from "react-icons/bi";
+import { BiSearchAlt } from "react-icons/bi";
 import useThrottle from "hooks/useThrottle";
 import { boxShadow, flexAlignJustifyCenter } from "styles/common";
-import { TiDeleteOutline } from "react-icons/ti";
-import { AiOutlineSearch } from "react-icons/ai";
+import RecentSearch from "./Search/RecentSearch";
+import RecommendSearch from "./Search/RecommendSearch";
 
 // SearchBar 검색창 컴포넌트
 const SearchBar = () => {
 	const [search, setSearch] = useState(""); // input값(검색어)
 	const [recommendSearch, setRecommendSearch] = useState([]); // 추천 검색어 담을 배열
 	const debounceValue = useDebounce(search); // 0.5초 디바운싱하여 검색어 담기
-	const throttledValue = useThrottle(search, 500); // 쓰로틀링 비교해보기!
+	const throttledValue = useThrottle(search); // 쓰로틀링 비교해보기!
 	const [isFocused, setIsFocused] = useState(false); // onFocus, onBlur시 History 컴포넌트 나타낼 수 있는 상태
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	// 키보드 이벤트나 선택 값 click 시 로컬스토리지에 최근 검색어 배열에 넣기 위한 상태, default는 선택되지 않은 상태(-1)
 
 	// 추천 검색어 db 에서 받아오기
 	useEffect(() => {
-		const getDbDate = async key => {
+		const getDbData = async key => {
 			try {
 				const res = await SearchApi.getSearchList(key);
 				console.log("검색 DB 결과: ", res.data);
@@ -31,7 +31,7 @@ const SearchBar = () => {
 			}
 		};
 		setRecommendSearch([]); // 추천 검색어 초기화하는 로직 -> 검색어 입력 시 이전 추천 검색어 기록 뜨지 않게함
-		if (debounceValue) getDbDate(debounceValue);
+		if (debounceValue) getDbData(debounceValue);
 	}, [debounceValue, search]);
 
 	// 검색 아이콘 클릭 시 로컬 스토리지에 검색어 값이 담기는 로직
@@ -131,79 +131,24 @@ const SearchBar = () => {
 					<BiSearchAlt size={30} />
 				</S.SearchIcon>
 				{isFocused && search.length === 0 && (
-					<S.HistoryContainer>
-						<S.HistoryTitle>최근 검색어</S.HistoryTitle>
-						{recentSearches.length === 0 ? (
-							<S.HistorySearchTerms>검색 결과가 없습니다.</S.HistorySearchTerms>
-						) : (
-							recentSearches.map((term, index) => (
-								<S.HistorySearchTerms
-									key={index}
-									className={`${selectedIndex === index ? "selected" : ""}`}
-									onClick={() => {
-										saveSearchTerm(term);
-										setSearch("");
-										setSelectedIndex(-1);
-									}}
-								>
-									<S.LeftSearch>
-										<BiTimeFive size={20} />
-										{term}
-									</S.LeftSearch>
-									<TiDeleteOutline
-										size={22}
-										onClick={e => {
-											e.stopPropagation(); // 이벤트 버블링 막기
-											onRemoveSearch(term);
-										}}
-									/>
-								</S.HistorySearchTerms>
-							))
-						)}
-					</S.HistoryContainer>
+					<RecentSearch
+						recentSearches={recentSearches}
+						selectedIndex={selectedIndex}
+						setSearch={setSearch}
+						saveSearchTerm={saveSearchTerm}
+						setSelectedIndex={setSelectedIndex}
+						onRemoveSearch={onRemoveSearch}
+					/>
 				)}
 				{isFocused && search.length > 0 && (
-					<S.HistoryContainer>
-						<S.SearchWord>
-							{" "}
-							<AiOutlineSearch size={16} />
-							{search}
-						</S.SearchWord>
-						<S.HistoryTitle>추천 검색어</S.HistoryTitle>
-						{recommendSearch.length === 0 ? (
-							<S.HistorySearchTerms>
-								추천 검색어가 없습니다.
-							</S.HistorySearchTerms>
-						) : (
-							recommendSearch.map((term, index) => {
-								let highlightedTerm = term
-									.split(new RegExp(`(${search})`, "gi"))
-									.map((part, idx) => {
-										if (part === search) {
-											return <S.Highlight key={idx}>{part}</S.Highlight>;
-										} else {
-											return part;
-										}
-									});
-								return (
-									<S.HistorySearchTerms
-										key={index}
-										className={`${selectedIndex === index ? "selected" : ""}`}
-										onClick={() => {
-											saveSearchTerm(term);
-											setSearch("");
-											setSelectedIndex(-1);
-										}}
-									>
-										<S.LeftSearch>
-											<AiOutlineSearch size={20} />
-											{highlightedTerm}
-										</S.LeftSearch>
-									</S.HistorySearchTerms>
-								);
-							})
-						)}
-					</S.HistoryContainer>
+					<RecommendSearch
+						search={search}
+						recommendSearch={recommendSearch}
+						selectedIndex={selectedIndex}
+						saveSearchTerm={saveSearchTerm}
+						setSearch={setSearch}
+						setSelectedIndex={setSelectedIndex}
+					/>
 				)}
 			</S.Container>
 		</S.Wrapper>
