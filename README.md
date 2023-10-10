@@ -16,6 +16,10 @@
 
   <br>
 
+  <h2>📽️ 시현 영상</h2>
+
+  <img src="https://github.com/yesoryeseul/SEARCH-SITE/assets/123865139/7063ca23-5a33-4a84-afdc-b2f8ad11ff51b" width="700">
+
   <h2>✍️ 프로젝트 기록</h2>
 
   <h4>API 최적화 방법, CORS 에러와 조치에 대한 내용 작성</h4>
